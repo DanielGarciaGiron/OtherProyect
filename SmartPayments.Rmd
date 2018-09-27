@@ -1,0 +1,35 @@
+---
+title: "Smart Payments"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    source: embed
+---
+
+```{r setup, include=FALSE}
+
+for (libreria in c("shiny","flexdashboard","class","caret","stringr","dplyr","tidyr","ggplot2","fpc","scales", "zoo")) {
+  if (!require(libreria, character.only=T)) {
+    install.packages(libreria)
+    library(libreria, character.only=T)
+  }
+}
+
+```
+
+
+
+
+Ventana de Banco
+=======================================================================
+
+
+
+Ventana de Usuario
+=======================================================================
+
+
+
+
+Informacion
+=======================================================================
