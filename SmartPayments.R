@@ -1,7 +1,7 @@
 
 #Ciclo que instala librerias requeridas para el funcionamiento correcto del programa. Revisa si ya estan instaladas
 #si no lo estan, las instala, si ya estan solamente las carga.
-for (libreria in c("stringr","dplyr","tidyr", "plotrix")) {
+for (libreria in c("class","caret","stringr","dplyr","tidyr", "plotrix")) {
   if (!require(libreria, character.only=T)) {
     install.packages(libreria)
     library(libreria, character.only=T)
@@ -28,6 +28,8 @@ DatosLimpios <- Datos %>% separate(Fecha, c("Dia", "Mes"), sep = "/")
 #Estos datos al separarse se guardan como texto, entonces se convierten a numeros.
 DatosLimpios$Dia <- as.numeric(DatosLimpios$Dia)
 DatosLimpios$Mes <- as.numeric(DatosLimpios$Mes)
+
+summary(DatosLimpios)
 
 #----------------- Segunda parte: Seleccion del cliente a investigar ----------------------------
 #OJO: ESTE NUMERO SE DEBE DE CAMBIAR SEGUN EL CLIENTE QUE SE DESEE Y GENERA NUEVA INFORMACION AL CORRER EL PROGRAMA NUEVAMENTE
@@ -74,6 +76,50 @@ for(i in min(DatosIndividuales$Mes):max(DatosIndividuales$Mes))
   TempDF <- subset(DatosIndividuales, DatosIndividuales$Mes == i)
   pie(table(TempDF$Segmento),col = topo.colors(15), main = paste ("Gastos del mes:", i))
 }
+
+
+#----------------- cuarta parte: Predicciones ----------------------------
+############## en progreso ######################
+#metodos posibles por implementar:
+#validacion cruzada
+#regresion logistica
+#regresion lineal simple o multivariada
+#Knn (K Nearest neighbors)
+
+
+#regresion lineal simple:
+#se usa para obtener numeros aleatorios
+set.seed(123)
+
+#Porciento en el que se partirán los datos
+porciento <- 70/100
+
+#Muestra aleatoria de numeros de un vector
+muestra<-sample(1:nrow(DatosIndividuales),porciento*nrow(DatosIndividuales))
+
+#Se divide el total de datos en dos datasets, el train set es la informacion que va a entrenar al
+#modelo para poder predecir gastos futuros. Testset es el dataset que va a comparar estos valores y ver si el
+#modelo pudo predecir correctamente los datos.
+trainSet<-DatosIndividuales[muestra,-c(2)] 
+testSet<-DatosIndividuales[-muestra,-c(2)] 
+
+#se genera un modelo lineal simple el cual toma el monto como la variable a predecir.
+modeloLinealSimple<-lm(Mes~Segmento, data = trainSet)
+
+#resume la relacion entre las dos variables obtenidas, muestra cuales son las que 
+#mas afectan al modelo (las mas probables de que vuelvan a ocurrir)
+summary(modeloLinealSimple)
+
+#predice los valores futuros de monto
+prediccion<-predict(modeloLinealSimple,newdata = testSet)
+#añade estos valores al dataset
+testSet$Prediccion<-prediccion
+
+#Ver la diferencia entre lo real y lo predicho
+dif<-abs(testSet$mpgPred-testSet$mpg)
+
+Knn <- knn(trainSet,testSet,trainSet$Monto,k=24)
+table(Knn,testSet$Monto)
 
 
 
