@@ -1,3 +1,4 @@
+# Ciclo que carga y/o instala librerias necesarias para los calculos
 for (libreria in c("class","caret","stringr","dplyr","tidyr","ggplot2","fpc","scales", "zoo")) {
   if (!require(libreria, character.only=T)) {
     install.packages(libreria)
@@ -6,7 +7,7 @@ for (libreria in c("class","caret","stringr","dplyr","tidyr","ggplot2","fpc","sc
 }
 
 
-##
+## Limpieza de datos
 Datos <- read.csv("./Database.csv", stringsAsFactors = F)
 Datos$Cuenta <- as.numeric(gsub("Cliente"," ",Datos$Cuenta))
 DatosLimpios <- Datos %>% separate(Fecha, c("Dia", "Mes","Año"), sep = "/")
@@ -17,7 +18,7 @@ DatosLimpios$TipoCompra <- as.numeric(factor(DatosLimpios$Segmento))
 
 
 
-##
+## Analisis exploratorio de los datos (graficas para el banco)
 summary(DatosLimpios)
 GastoMasComun <- tail(names(sort(table(DatosLimpios$Segmento))), 1)
 GastoMasComun
@@ -67,13 +68,22 @@ g + geom_count(col="tomato3", show.legend=F) +
 
 
 
-##
-IDcliente <- 1
+## removiendo los no recurrentes 
+NoRecurrentes <- read.csv("./NoRecurrentes.csv", stringsAsFactors = F)
+nombres<-rownames(NoRecurrentes)
+DatosLimpios2 <- subset(DatosLimpios, Segmento != nombres)
 
 
 
-##
-DatosIndividuales <- subset(DatosLimpios[,c(1:7)], DatosLimpios$Cuenta == IDcliente)
+
+
+## 
+IDcliente <- 6
+
+
+
+## Prediccion de dias, usando metodo creado
+DatosIndividuales <- subset(DatosLimpios2[,c(1:7)], DatosLimpios2$Cuenta == IDcliente)
 ListaValores <- names(sort(table(DatosIndividuales$Segmento), decreasing=TRUE)[1:4])
 Valor1 <- DatosIndividuales$Segmento == ListaValores[1] 
 Valor2 <- DatosIndividuales$Segmento == ListaValores[2] 
@@ -88,32 +98,41 @@ for(i in ListaValores[1:4])
 {
   ListaTemp <- TablaPrediccion$Segmento == i
   DiaPago[i] <- round(mean(TablaPrediccion[ListaTemp,]$Dia))
-  DiaPagoMax[i] <- round(DiaPago[i] + sd(TablaPrediccion[ListaTemp,]$Dia))
-  DiaPagoMin[i] <- round(DiaPago[i] - sd(TablaPrediccion[ListaTemp,]$Dia))
+  Desviacion <- sd(TablaPrediccion[ListaTemp,]$Dia)
+  DiaPagoMax[i] <- round(DiaPago[i] + Desviacion)
+  DiaPagoMin[i] <- round(DiaPago[i] - Desviacion)
 }
-InfoDiaPago <- data.frame(DiaPago,DiaPagoMax,DiaPagoMin)
+DiaPago[is.na(DiaPago)]<-15
+DiaPagoMax[is.na(DiaPagoMax)]<-17
+DiaPagoMin[is.na(DiaPagoMin)]<-13
+InfoDiaPago <- data.frame(as.numeric(DiaPago),as.numeric(DiaPagoMax),as.numeric(DiaPagoMin))
+colnames(InfoDiaPago) <- c("Dia promedio", "Dia maximo", "Dia minimo")
+InfoDiaPago[InfoDiaPago<=1]<-1
+InfoDiaPago[InfoDiaPago>=31]<-31
 
-
+## aprendizaje de maquinas utilizando Knn.
 set.seed(123)
 porciento <- 65/100 
-muestra<-sample(1:nrow(DatosLimpios),porciento*nrow(DatosLimpios))
-TrainSet<-DatosLimpios[muestra,] 
-TestSet<-DatosLimpios[-muestra,] 
+muestra<-sample(1:nrow(DatosLimpios2),porciento*nrow(DatosLimpios2))
+TrainSet<-DatosLimpios2[muestra,] 
+TestSet<-DatosLimpios2[-muestra,] 
 
 predKnn<-knn(TrainSet[,c(1,5,8)],TestSet[,c(1,5,8)],as.factor(TrainSet$Dia),k=3)
 cfm<-confusionMatrix(as.factor(TestSet$Dia),predKnn)
 cfm
 
+## aprendizaje de maquinas utilizando un modelo lineal multilineal.
 modeloLinealMulti<-lm(Dia~Cuenta+Mes+TipoCompra , data = TrainSet)
 summary(modeloLinealMulti)
 prediccion<-predict(modeloLinealMulti,newdata = TestSet[,c(1,5,8)])
 prediccion
 dif<-abs(prediccion-TestSet$Dia)
-dif
+write.csv(dif, file = "ResultadosMulti.csv")
 
 
 
-##
+
+## Datos para el usuario.
 pie(table(DatosIndividuales$Segmento), col = topo.colors(15), main = "Lugares de consumo")
 
 for(i in min(DatosIndividuales$Mes):max(DatosIndividuales$Mes))
@@ -122,7 +141,7 @@ for(i in min(DatosIndividuales$Mes):max(DatosIndividuales$Mes))
   pie(table(TempDF$Segmento),col = topo.colors(15), main = paste ("Gastos del mes:", i))
 }
 
-PresupuestoMensual <- 5000
+Presupuesto <- 5000
 for(i in min(DatosIndividuales$Mes):max(DatosIndividuales$Mes))
 {
   TempDF <- subset(DatosIndividuales, DatosIndividuales$Mes == i)
