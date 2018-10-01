@@ -23,6 +23,7 @@ DatosLimpios$Dia <- as.numeric(DatosLimpios$Dia)
 DatosLimpios$Mes <- as.numeric(DatosLimpios$Mes)
 DatosLimpios$Year <- as.numeric(DatosLimpios$Year)
 DatosLimpios$TipoCompra <- as.numeric(factor(DatosLimpios$Segmento))
+DatosLimpios <- subset(DatosLimpios, Segmento != "Afiliado Visanet")
 
 NoRecurrentes <- read.csv("./NoRecurrentes.csv", stringsAsFactors = F)
 nombres<-rownames(NoRecurrentes)
@@ -201,8 +202,9 @@ renderTable({
   DiaPago[is.na(DiaPago)]<-15
   DiaPagoMax[is.na(DiaPagoMax)]<-17
   DiaPagoMin[is.na(DiaPagoMin)]<-13
-  InfoDiaPago <- data.frame(as.numeric(DiaPago),as.numeric(DiaPagoMax),as.numeric(DiaPagoMin))
-  colnames(InfoDiaPago) <- c("Dia promedio", "Dia maximo", "Dia minimo")
+  Numeros <- c("1","2","3","4")
+  InfoDiaPago <- data.frame(Numeros,ListaValores, as.numeric(DiaPago),as.numeric(DiaPagoMax),as.numeric(DiaPagoMin))
+  colnames(InfoDiaPago) <- c("#","Lugares","Dia promedio", "Dia maximo", "Dia minimo")
   InfoDiaPago[InfoDiaPago<=1]<-1
   InfoDiaPago[InfoDiaPago>=31]<-31
   head(InfoDiaPago)

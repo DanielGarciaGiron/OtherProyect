@@ -15,6 +15,7 @@ DatosLimpios$Dia <- as.numeric(DatosLimpios$Dia)
 DatosLimpios$Mes <- as.numeric(DatosLimpios$Mes)
 DatosLimpios$Año <- as.numeric(DatosLimpios$Año)
 DatosLimpios$TipoCompra <- as.numeric(factor(DatosLimpios$Segmento))
+DatosLimpios <- subset(DatosLimpios, Segmento != "Afiliado Visanet")
 
 
 
