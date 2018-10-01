@@ -108,19 +108,7 @@ inputPanel(
 
 Row {.tabset .tabset-fade}
 -----------------------------------------------------------------------
-Listado de los lugares mas comunes del usuario:
-```{r}
-renderText({
-  IDcliente <- input$ID
-  DatosIndividuales <- subset(DatosLimpios[,c(1:7)], DatosLimpios$Cuenta == IDcliente)
-  ListaValores <- names(sort(table(DatosIndividuales$Segmento), decreasing=TRUE)[1:4])  
-  paste0("#1:  ", ListaValores[1], ";   ",
-         "#2:  ", ListaValores[2], ";   ",
-         "#3:  ", ListaValores[3], ";   ",
-         "#4:  ", ListaValores[4])
-  
-})
-```
+
 
 
 ### Knn - Matriz de confusion
@@ -171,6 +159,20 @@ renderTable({
 
 Row
 -----------------------------------------------------------------------
+Listado de los lugares mas comunes del usuario:
+```{r}
+renderText({
+  IDcliente <- input$ID
+  DatosIndividuales <- subset(DatosLimpios[,c(1:7)], DatosLimpios$Cuenta == IDcliente)
+  ListaValores <- names(sort(table(DatosIndividuales$Segmento), decreasing=TRUE)[1:4])  
+  paste0("#1:  ", ListaValores[1], ";   ",
+         "#2:  ", ListaValores[2], ";   ",
+         "#3:  ", ListaValores[3], ";   ",
+         "#4:  ", ListaValores[4])
+  
+})
+```
+
 
 Tabla del rango de dias a realizar los pagos de los primeros 4 gastos mas comunes.
 ```{r}
