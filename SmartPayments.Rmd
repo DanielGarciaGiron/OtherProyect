@@ -24,6 +24,7 @@ DatosLimpios$Mes <- as.numeric(DatosLimpios$Mes)
 DatosLimpios$Year <- as.numeric(DatosLimpios$Year)
 DatosLimpios$TipoCompra <- as.numeric(factor(DatosLimpios$Segmento))
 DatosLimpios <- subset(DatosLimpios, Segmento != "Afiliado Visanet")
+DatosLimpios <- subset(DatosLimpios, Segmento != "Supermercados")
 
 NoRecurrentes <- read.csv("./NoRecurrentes.csv", stringsAsFactors = F)
 nombres<-rownames(NoRecurrentes)
@@ -243,7 +244,8 @@ renderTable({
   Dinero <- c(res2,res3,res4,res5,res6)
   
   InfoPresupuesto <- data.frame(Mes,Dinero)
-  head(InfoPresupuesto)
+  tryCatch(head(InfoPresupuesto), error = function(e){stop("No hay datos que sean no recurrentes para este usuario")})
+
 })
 ```
 
@@ -256,7 +258,8 @@ Row {.tabset .tabset-fade}
 renderPlot({
   IDcliente <- input$ID
   DatosIndividuales <- subset(DatosLimpios[,c(1:7)], DatosLimpios$Cuenta == IDcliente)
-  pie(table(DatosIndividuales$Segmento), col = topo.colors(15), main = "Lugares de consumo")
+  tryCatch(pie(table(DatosIndividuales$Segmento), col = topo.colors(15), main = "Lugares de consumo"), error = function(e){stop("No hay datos que sean no recurrentes para este usuario")})
+  
 })
 ```
 
